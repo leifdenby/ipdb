@@ -1,12 +1,12 @@
 # Copyright (c) 2011, 2012 Godefroid Chapelle
-# 
+#
 # This file is part of ipdb.
 # GNU package is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free 
-# Software Foundation, either version 2 of the License, or (at your option) 
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2 of the License, or (at your option)
 # any later version.
 #
-# GNU package is distributed in the hope that it will be useful, but 
+# GNU package is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details.
@@ -65,18 +65,24 @@ def wrap_sys_excepthook():
         BdbQuit_excepthook.excepthook_ori = sys.excepthook
         sys.excepthook = BdbQuit_excepthook
 
-def set_trace(frame=None):
+def set_trace(frame=None, no_colors=False):
     update_stdout()
     wrap_sys_excepthook()
     if frame is None:
         frame = sys._getframe().f_back
-    Pdb(def_colors).set_trace(frame)
+    if no_colors:
+        Pdb().set_trace(frame)
+    else:
+        Pdb(def_colors).set_trace(frame)
 
 
-def post_mortem(tb):
+def post_mortem(tb, no_colors=False):
     update_stdout()
     wrap_sys_excepthook()
-    p = Pdb(def_colors)
+    if no_colors:
+        p = Pdb()
+    else:
+        p = Pdb(def_colors)
     p.reset()
     if tb is None:
         return
@@ -102,13 +108,13 @@ def runeval(expression, globals=None, locals=None):
 
 
 @contextmanager
-def launch_ipdb_on_exception():
+def launch_ipdb_on_exception(no_colors=False):
     try:
         yield
     except Exception:
         e, m, tb = sys.exc_info()
         print >>sys.stderr, m.__repr__()
-        post_mortem(tb)
+        post_mortem(tb, no_colors)
     finally:
         pass
 
